@@ -4,31 +4,44 @@
 # https://docs.microsoft.com/azure/devops/pipelines/languages/dotnet-core
 
 trigger:
-- master
+- none
 
 pool:
   vmImage: 'windows-latest'
 
-jobs:
-- job: Build
-  displayName: 'Build and Test'
-  steps:
-  - task: UseDotNet@2
-    inputs:
-      packageType: 'sdk'
-      version: '3.x'
-      installationPath: $(Agent.ToolsDirectory)/dotnet
+variables:
+  buildPlatform: 'Any CPU'
+  buildConfiguration: 'Release'
+  solution: '**/DotNetCoverletExample.sln'
+  project: '**/DotNetCoverletExample.Counter/DotNetCoverletExample.Counter.csproj'
 
-  - script: dotnet restore DotNetCoverletExample/DotNetCoverletExample.Counter/DotNetCoverletExample.Counter.csproj
-    displayName: 'Restore'
-    workingDirectory: $(System.DefaultWorkingDirectory)
+steps:
+- task: NuGetToolInstaller@1
+  name: 'NuGetToolInstaller'
+  displayName: 'NuGet tool installer'
 
-  - script: dotnet build DotNetCoverletExample/DotNetCoverletExample.Counter/DotNetCoverletExample.Counter.csproj --configuration Release
-    displayName: 'Build'
-    workingDirectory: $(System.DefaultWorkingDirectory)
+- task: NuGetCommand@2
+  name: 'NuGetRestore'
+  displayName: 'NuGet restore packages'
+  inputs:
+    command: 'restore'
+    restoreSolution: '$(solution)'
+    feedsToUse: 'select'
 
-  - script: dotnet test DotNetCoverletExample/DotNetCoverletExample.Counter.Tests/DotNetCoverletExample.Counter.Tests.csproj --configuration Release --collect "Code coverage"
-    displayName: 'Run Tests and Collect Code Coverage'
-    workingDirectory: $(System.DefaultWorkingDirectory)
+- task: DotNetCoreCLI@2
+  name: 'Tests'
+  displayName: 'Run tests'
+  inputs:
+    command: 'test'
+    projects: '$(solution)'
+    arguments: '--configuration $(BuildConfiguration)'
 
-
+- task: DotNetCoreCLI@2
+  name: 'Publish'
+  displayName: 'Publish'
+  inputs:
+    command: 'publish'
+    publishWebProjects: false
+    projects: '$(project)'
+    arguments: '--configuration $(BuildConfiguration) --output $(Build.ArtifactStagingDirectory)'
+    zipAfterPublish: false
