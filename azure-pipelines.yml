@@ -19,8 +19,8 @@ jobs:
       version: '3.x'
       installationPath: $(Agent.ToolsDirectory)/dotnet
 
-  - script: dotnet restore DotNetCoverletExample/DotNetCoverletExample.Counter/DotNetCoverletExample.Counter.csproj
-    displayName: 'Restore'
+  # - script: dotnet restore DotNetCoverletExample/DotNetCoverletExample.Counter/DotNetCoverletExample.Counter.csproj
+  #   displayName: 'Restore'
 
   - script: dotnet build DotNetCoverletExample/DotNetCoverletExample.Counter/DotNetCoverletExample.Counter.csproj --configuration Release
     displayName: 'Build'
