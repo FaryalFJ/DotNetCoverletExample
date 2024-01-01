@@ -19,13 +19,16 @@ jobs:
       version: '3.x'
       installationPath: $(Agent.ToolsDirectory)/dotnet
 
-  # - script: dotnet restore DotNetCoverletExample/DotNetCoverletExample.Counter/DotNetCoverletExample.Counter.csproj
-  #   displayName: 'Restore'
+  - script: dotnet restore DotNetCoverletExample/DotNetCoverletExample.Counter/DotNetCoverletExample.Counter.csproj
+    displayName: 'Restore'
+    workingDirectory: $(System.DefaultWorkingDirectory)
 
   - script: dotnet build DotNetCoverletExample/DotNetCoverletExample.Counter/DotNetCoverletExample.Counter.csproj --configuration Release
     displayName: 'Build'
+    workingDirectory: $(System.DefaultWorkingDirectory)
 
   - script: dotnet test DotNetCoverletExample/DotNetCoverletExample.Counter.Tests/DotNetCoverletExample.Counter.Tests.csproj --configuration Release --collect "Code coverage"
     displayName: 'Run Tests and Collect Code Coverage'
+    workingDirectory: $(System.DefaultWorkingDirectory)
 
 
