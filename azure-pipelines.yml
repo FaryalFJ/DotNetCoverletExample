@@ -9,26 +9,47 @@ trigger:
 pool:
   vmImage: 'windows-latest'
 
-variables:
-  solution: '**/*.sln'
-  buildPlatform: 'Any CPU'
-  buildConfiguration: 'Release'
+jobs:
+- job: Build
+  displayName: 'Build and Test'
+  steps:
+  - task: UseDotNet@2
+    inputs:
+      packageType: 'sdk'
+      version: '3.x'
+      installationPath: $(Agent.ToolsDirectory)/dotnet
 
-steps:
-- task: NuGetToolInstaller@1
+  - task: DotNetCoreCLI@2
+    inputs:
+      command: 'restore'
+      projects: 'DotNetCoverletExample/DotNetCoverletExample.Counter/DotNetCoverletExample.Counter.csproj'
 
-- task: NuGetCommand@2
-  inputs:
-    restoreSolution: '$(solution)'
+  - task: DotNetCoreCLI@2
+    inputs:
+      command: 'build'
+      projects: 'DotNetCoverletExample/DotNetCoverletExample.Counter/DotNetCoverletExample.Counter.csproj'
+      arguments: '--configuration Release'
 
-- task: VSBuild@1
-  inputs:
-    solution: '$(solution)'
-    msbuildArgs: '/p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /p:SkipInvalidConfigurations=true /p:DesktopBuildPackageLocation="$(build.artifactStagingDirectory)\WebApp.zip" /p:DeployIisAppPath="Default Web Site"'
-    platform: '$(buildPlatform)'
-    configuration: '$(buildConfiguration)'
+  - task: DotNetCoreCLI@2
+    inputs:
+      command: 'test'
+      projects: 'DotNetCoverletExample/DotNetCoverletExample.Counter.Tests/DotNetCoverletExample.Counter.Tests.csproj'
+      arguments: '--configuration Release --collect "Code coverage"'
 
-# - task: VSTest@2
-#   inputs:
-#     platform: '$(buildPlatform)'
-#     configuration: '$(buildConfiguration)'
+- job: Publish
+  displayName: 'Publish Artifacts'
+  dependsOn: Build
+  steps:
+  - task: DotNetCoreCLI@2
+    inputs:
+      command: 'publish'
+      publishWebProjects: true
+      arguments: '--configuration Release --output $(build.artifactstagingdirectory)'
+      zipAfterPublish: true
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      pathtoPublish: '$(build.artifactstagingdirectory)'
+      artifactName: 'drop'
+
+
