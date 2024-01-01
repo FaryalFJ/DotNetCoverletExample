@@ -19,37 +19,13 @@ jobs:
       version: '3.x'
       installationPath: $(Agent.ToolsDirectory)/dotnet
 
-  - task: DotNetCoreCLI@2
-    inputs:
-      command: 'restore'
-      projects: 'DotNetCoverletExample/DotNetCoverletExample.Counter/DotNetCoverletExample.Counter.csproj'
+  - script: dotnet restore DotNetCoverletExample/DotNetCoverletExample.Counter/DotNetCoverletExample.Counter.csproj
+    displayName: 'Restore'
 
-  - task: DotNetCoreCLI@2
-    inputs:
-      command: 'build'
-      projects: 'DotNetCoverletExample/DotNetCoverletExample.Counter/DotNetCoverletExample.Counter.csproj'
-      arguments: '--configuration Release'
+  - script: dotnet build DotNetCoverletExample/DotNetCoverletExample.Counter/DotNetCoverletExample.Counter.csproj --configuration Release
+    displayName: 'Build'
 
-  - task: DotNetCoreCLI@2
-    inputs:
-      command: 'test'
-      projects: 'DotNetCoverletExample/DotNetCoverletExample.Counter.Tests/DotNetCoverletExample.Counter.Tests.csproj'
-      arguments: '--configuration Release --collect "Code coverage"'
-
-- job: Publish
-  displayName: 'Publish Artifacts'
-  dependsOn: Build
-  steps:
-  - task: DotNetCoreCLI@2
-    inputs:
-      command: 'publish'
-      publishWebProjects: true
-      arguments: '--configuration Release --output $(build.artifactstagingdirectory)'
-      zipAfterPublish: true
-
-  - task: PublishBuildArtifacts@1
-    inputs:
-      pathtoPublish: '$(build.artifactstagingdirectory)'
-      artifactName: 'drop'
+  - script: dotnet test DotNetCoverletExample/DotNetCoverletExample.Counter.Tests/DotNetCoverletExample.Counter.Tests.csproj --configuration Release --collect "Code coverage"
+    displayName: 'Run Tests and Collect Code Coverage'
 
 
